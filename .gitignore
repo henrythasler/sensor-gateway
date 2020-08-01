@@ -4,3 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 lib/secrets/secrets.h
+.ipynb*
