@@ -1,12 +1,8 @@
-#ifndef STATISTICS_H
-#define STATISTICS_H
+#ifndef CIRCULARBUFFER_H
+#define CIRCULARBUFFER_H
 
 #include <stdint.h>
 #include <vector>
-#include <cmath>
-#include <stdexcept>
-#include <sys/time.h>
-#include <algorithm>
 
 using namespace std;
 

@@ -40,7 +40,7 @@ void setup()
 {
   // LED output
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(LED_BUILTIN, LOW); // turn on during boot
   initStage++;
 
   // Setup serial connection for debugging
@@ -90,7 +90,6 @@ void setup()
   tm *tm = uptime.getTime();
   Serial.printf("[  INIT  ] Current time is: %02d.%02d.%04d %02d:%02d:%02d\n", tm->tm_mday, tm->tm_mon, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
   initStage++;
-
 
   Serial.print("[  INIT  ] Connecting to MQTT-Server... ");
   mqttClient.setServer(secrets.mqttServer, 1883);
@@ -149,15 +148,14 @@ void loop()
       reconnect();
     }
 
-    int len = 0;
     float mean = rawSeries.mean();
     float temp = 0.112 * mean + 212.832 - 273.15;
 
-    len = snprintf(textBuffer, sizeof(textBuffer), "{\"raw\": %.1f, \"value\": %.1f, \"timestamp\": %u, \"unit\": \"\u00b0C\"}", mean, temp, uptime.getSeconds());
-    mqttClient.publish("home/out/temp", textBuffer, len);
+    snprintf(textBuffer, sizeof(textBuffer), "{\"raw\": %.1f, \"value\": %.1f, \"timestamp\": %u, \"unit\": \"\u00b0C\"}", mean, temp, uptime.getSeconds());
+    mqttClient.publish("home/out/temp", textBuffer, true);
 
-    len = snprintf(textBuffer, sizeof(textBuffer), "%.1f", temp);
-    mqttClient.publish("home/out/temp/value", textBuffer, len);
+    snprintf(textBuffer, sizeof(textBuffer), "%.1f", temp);
+    mqttClient.publish("home/out/temp/value", textBuffer, true);
   }
 
   // 300s Tasks
