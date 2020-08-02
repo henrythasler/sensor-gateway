@@ -10,6 +10,14 @@ PubSubClient mqttClient(wifiClient);
 
 #include <secrets.h>
 
+// uptime calculation
+#include <uptime.h>
+Uptime uptime;
+
+// Statistics Helper-Class
+#include <circularbuffer.h>
+Circularbuffer rawSeries(15U);
+
 // Flow control, basic task scheduler
 #define SCHEDULER_MAIN_LOOP_MS (10) // ms
 uint32_t counterBase = 0;
@@ -70,6 +78,20 @@ void setup()
   Serial.println(")");
   initStage++;
 
+  // Clock setup
+  Serial.println("[  INIT  ] Clock synchronization");
+  configTime(0, 0, secrets.ntpServer);
+  delay(200); // wait for ntp-sync
+
+  // set timezone and DST
+  setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0", 1); //"Europe/Berlin"  from: http://www.famschmid.net/timezones.html
+  tzset();                                     // Assign the local timezone from setenv
+
+  tm *tm = uptime.getTime();
+  Serial.printf("[  INIT  ] Current time is: %02d.%02d.%04d %02d:%02d:%02d\n", tm->tm_mday, tm->tm_mon, tm->tm_year + 1900, tm->tm_hour, tm->tm_min, tm->tm_sec);
+  initStage++;
+
+
   Serial.print("[  INIT  ] Connecting to MQTT-Server... ");
   mqttClient.setServer(secrets.mqttServer, 1883);
   Serial.println("ok");
@@ -111,20 +133,7 @@ void loop()
   {
     // indicate alive
     digitalWrite(LED_BUILTIN, LOW);
-
-    int len = 0;
-    int raw = analogRead(PIN_ADC);
-
-    float currentTemperatureCelsius = 0;
-
-
-    float U2 = float(raw) / (1023.-5.);
-
-    float U4 = U2 / 100. * (330 + 220) + U2;
-    // Serial.printf("raw=%u, U2=%.2f U4=%.2f",raw, U2, U4);
-
-    len = snprintf(textBuffer, sizeof(textBuffer), "{\"raw\": %u, \"U2\": %.2f, \"U4\": %.2f}", raw, U2, U4);
-    mqttClient.publish("home/test", textBuffer, len);
+    rawSeries.push(analogRead(PIN_ADC));
   }
 
   // 30s Tasks
@@ -139,6 +148,16 @@ void loop()
     {
       reconnect();
     }
+
+    int len = 0;
+    float mean = rawSeries.mean();
+    float temp = 0.112 * mean + 212.832 - 273.15;
+
+    len = snprintf(textBuffer, sizeof(textBuffer), "{\"raw\": %.1f, \"value\": %.1f, \"timestamp\": %u, \"unit\": \"\u00b0C\"}", mean, temp, uptime.getSeconds());
+    mqttClient.publish("home/out/temp", textBuffer, len);
+
+    len = snprintf(textBuffer, sizeof(textBuffer), "%.1f", temp);
+    mqttClient.publish("home/out/temp/value", textBuffer, len);
   }
 
   // 300s Tasks
