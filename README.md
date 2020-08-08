@@ -3,6 +3,8 @@ Read analog values and forward to MQTT server
 
 ## Hardware setup
 
+![schematic](docs/schematic-sensor.png)
+
 ## Sensor Data Conversion
 
 see jupyter-notebook
