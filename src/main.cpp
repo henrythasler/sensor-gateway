@@ -18,10 +18,15 @@ Uptime uptime;
 #include <circularbuffer.h>
 Circularbuffer rawSeries(15U);
 
+// Temperature sensor calculation
+#include <sensor.h>
+Sensor tempSensor;
+
 // Flow control, basic task scheduler
 #define SCHEDULER_MAIN_LOOP_MS (10) // ms
 uint32_t counterBase = 0;
 uint32_t counter300s = 0;
+uint32_t counter30s = 0;
 uint32_t counter1h = 0;
 uint32_t initStage = 0;
 
@@ -118,7 +123,7 @@ void loop()
   // 100ms Tasks
   if (!(counterBase % (100L / SCHEDULER_MAIN_LOOP_MS)))
   {
-    digitalWrite(LED_BUILTIN, HIGH); // regularly turn on LED
+    digitalWrite(LED_BUILTIN, HIGH); // regularly turn off LED
     mqttClient.loop();
   }
 
@@ -130,7 +135,7 @@ void loop()
   // 2s Tasks
   if (!(counterBase % (2000L / SCHEDULER_MAIN_LOOP_MS)))
   {
-    // indicate alive
+    // turn on LED to indicate measurement
     digitalWrite(LED_BUILTIN, LOW);
     rawSeries.push(analogRead(PIN_ADC));
   }
@@ -148,14 +153,18 @@ void loop()
       reconnect();
     }
 
-    float mean = rawSeries.mean();
-    float temp = 0.112 * mean + 212.832 - 273.15;
+    if (counter30s > 0)
+    {
+      float mean = rawSeries.mean();
+      float temp = tempSensor.modelRawToCelsius(mean);
 
-    snprintf(textBuffer, sizeof(textBuffer), "{\"raw\": %.1f, \"value\": %.1f, \"timestamp\": %u, \"unit\": \"\u00b0C\"}", mean, temp, uptime.getSeconds());
-    mqttClient.publish("home/out/temp", textBuffer, true);
+      snprintf(textBuffer, sizeof(textBuffer), "{\"raw\": %.1f, \"value\": %.1f, \"timestamp\": %u, \"unit\": \"\u00b0C\"}", mean, temp, uptime.getSeconds());
+      mqttClient.publish("home/out/temp", textBuffer, true);
 
-    snprintf(textBuffer, sizeof(textBuffer), "%.1f", temp);
-    mqttClient.publish("home/out/temp/value", textBuffer, true);
+      snprintf(textBuffer, sizeof(textBuffer), "%.1f", temp);
+      mqttClient.publish("home/out/temp/value", textBuffer, true);
+    }
+    counter30s++;
   }
 
   // 300s Tasks
