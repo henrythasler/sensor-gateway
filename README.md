@@ -17,6 +17,7 @@ see jupyter-notebook
 - [15 Tips and Tricks to Use Jupyter Notebook More Efficiently](https://towardsdatascience.com/15-tips-and-tricks-to-use-jupyter-notebook-more-efficiently-ef05ede4e4b9)
 - [Basic Curve Fitting of Scientific Data with Python](https://towardsdatascience.com/basic-curve-fitting-of-scientific-data-with-python-9592244a2509)
 - [Simple linear regression](https://en.wikipedia.org/wiki/Simple_linear_regression)
+- [Working with Jupyter Notebooks in Visual Studio Code](https://code.visualstudio.com/docs/python/jupyter-support)
 
 ## TeX, LaTeX
 
