@@ -63,6 +63,8 @@ void setup()
 
   //connect to your local wi-fi network
   Serial.printf("[  INIT  ] Connecting to Wifi '%s'", secrets.wifiSsid);
+  WiFi.softAPdisconnect(true);  // make sure to disable the AP-mode
+  delay(100);
   WiFi.begin(secrets.wifiSsid, secrets.wifiPassword);
 
   //check wi-fi is connected to wi-fi network
