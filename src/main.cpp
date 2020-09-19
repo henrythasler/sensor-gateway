@@ -16,11 +16,7 @@ Uptime uptime;
 
 // Statistics Helper-Class
 #include <circularbuffer.h>
-<<<<<<< HEAD
 Circularbuffer rawSeries(60U);
-=======
-Circularbuffer rawSeries(30U);
->>>>>>> master
 
 // Temperature sensor calculation
 #include <sensor.h>
