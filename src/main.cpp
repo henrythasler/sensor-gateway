@@ -16,7 +16,7 @@ Uptime uptime;
 
 // Statistics Helper-Class
 #include <circularbuffer.h>
-Circularbuffer rawSeries(15U);
+Circularbuffer rawSeries(60U);
 
 // Temperature sensor calculation
 #include <sensor.h>
@@ -132,14 +132,14 @@ void loop()
   // 500ms Tasks
   if (!(counterBase % (500L / SCHEDULER_MAIN_LOOP_MS)))
   {
+    rawSeries.push(analogRead(PIN_ADC));
   }
 
   // 2s Tasks
   if (!(counterBase % (2000L / SCHEDULER_MAIN_LOOP_MS)))
   {
-    // turn on LED to indicate measurement
+    // turn on LED to indicate alive
     digitalWrite(LED_BUILTIN, LOW);
-    rawSeries.push(analogRead(PIN_ADC));
   }
 
   // 30s Tasks
